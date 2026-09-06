@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F5E6D3">
+  <meta name="description" content="People Base — персональная база контактов в стиле ретро-картотеки">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="People">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <title>People Base — картотека контактов</title>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       People Base — стили (ретро-картотека)
+       Палитра: пыльно-розовый, горчичный, тёмно-зелёный, кремовый
+       ═══════════════════════════════════════════════════════ */
+    :root {
+      --pink: #D4A5A5;
+      --pink-deep: #c08a8a;
+      --mustard: #C9A961;
+      --mustard-deep: #a5863c;
+      --green: #4A5D4F;
+      --green-light: #6b8273;
+      --green-deep: #3a4a3f;
+      --cream: #F5E6D3;
+      --paper: #FFF8EC;
+      --ink: #3a3a35;
+      --muted: #8d867a;
+      --line: #e3d3bc;
+      --danger: #b0563f;
+      --card-bg: linear-gradient(160deg, #fff9ee 0%, #f6ead9 55%, #efe0c9 100%);
+      --shadow: 0 1px 2px rgba(74, 93, 79, .10), 0 10px 28px rgba(74, 93, 79, .16);
+      --shadow-lg: 0 14px 44px rgba(74, 93, 79, .28);
+      --radius: 16px;
+      --font-serif: Georgia, 'Times New Roman', 'Playfair Display', serif;
+      --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: var(--font-sans);
+      color: var(--ink);
+      background-color: var(--cream);
+      /* Лёгкая «бумажная» текстура — редкие точечные зерна */
+      background-image:
+        radial-gradient(circle at 18% 24%, rgba(201, 169, 97, .09) 0 1.5px, transparent 2.5px),
+        radial-gradient(circle at 72% 14%, rgba(212, 165, 165, .10) 0 1.5px, transparent 2.5px),
+        radial-gradient(circle at 44% 78%, rgba(74, 93, 79, .07) 0 1.5px, transparent 2.5px);
+      background-size: 130px 130px, 170px 170px, 190px 190px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: 84px; /* место под нижнюю навигацию на мобильных */
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font-serif); font-weight: 600; }
+
+    ::selection { background: var(--pink); color: var(--ink); }
+
+    /* Утончённый скроллбар */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(74, 93, 79, .25); border-radius: 8px; border: 2px solid var(--cream); }
+
+    button { font-family: inherit; cursor: pointer; }
+    input, textarea, select { font-family: inherit; font-size: 15px; color: var(--ink); }
+
+    /* ─────────────────────────────
+       Верхняя панель
+       ───────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 12px 18px;
+      background: rgba(245, 230, 211, .88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 36px; height: 36px;
+      display: grid; place-items: center;
+      background: var(--green);
+      border-radius: 10px 10px 10px 3px;
+      color: var(--cream);
+      font-size: 17px;
+    }
+    .brand-title { font-family: var(--font-serif); font-size: 20px; line-height: 1; color: var(--green-deep); }
+    .brand-sub { display: block; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+
+    .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+    .search-wrap { position: relative; }
+    .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .search-input {
+      width: min(320px, 42vw);
+      padding: 10px 34px 10px 38px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--paper);
+      outline: none;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .search-input:focus { border-color: var(--mustard); box-shadow: 0 0 0 3px rgba(201, 169, 97, .22); }
+    .search-clear {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+      width: 24px; height: 24px; border: 0; border-radius: 50%;
+      background: transparent; color: var(--muted); display: grid; place-items: center;
+      opacity: 0; pointer-events: none; transition: opacity .15s;
+    }
+    .search-clear.visible { opacity: 1; pointer-events: auto; }
+    .search-clear:hover { background: rgba(74, 93, 79, .1); }
+
+    .icon-btn {
+      width: 40px; height: 40px;
+      display: grid; place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      color: var(--green);
+      transition: background .15s, transform .1s;
+    }
+    .icon-btn:hover { background: #f0e2cb; }
+    .icon-btn:active { transform: scale(.94); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 10px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      color: var(--ink);
+      font-weight: 500;
+      transition: background .15s, box-shadow .15s, transform .1s;
+    }
+    .btn:hover { background: #f0e2cb; }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--green); border-color: var(--green); color: #FBF3E4; box-shadow: 0 4px 14px rgba(74, 93, 79, .30); }
+    .btn-primary:hover { background: var(--green-deep); }
+    .btn-ghost { background: transparent; }
+    .btn-area { width: 100%; }
+    .danger-text { color: var(--danger); }
+    .hide-sm { display: none; }
+    @media (min-width: 600px) { .hide-sm { display: inline; } }
+
+    /* Выпадающее меню (☰) */
+    .menu { position: relative; }
+    .menu-dropdown {
+      position: absolute; right: 0; top: calc(100% + 8px);
+      min-width: 230px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      padding: 8px;
+      opacity: 0; transform: translateY(-6px) scale(.98);
+      pointer-events: none;
+      transition: opacity .16s ease, transform .16s ease;
+      z-index: 50;
+    }
+    .menu-dropdown.open { opacity: 1; transform: none; pointer-events: auto; }
+    .menu-item {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 10px 12px;
+      background: transparent; border: 0; border-radius: 9px;
+      font-size: 14px; text-align: left; color: var(--ink);
+    }
+    .menu-item:hover { background: #f0e2cb; }
+    .menu-item svg { color: var(--green); flex-shrink: 0; }
+    .menu-sep { height: 1px; background: var(--line); margin: 6px 8px; }
+
+    /* ─────────────────────────────
+       Панель фильтров
+       ───────────────────────────── */
+    .filter-panel {
+      display: none;
+      margin: 14px 18px 0;
+      padding: 16px 18px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      animation: slideDown .22s ease;
+    }
+    .filter-panel.open { display: block; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+    .filter-row { margin-bottom: 14px; }
+    .filter-row:last-child { margin-bottom: 0; }
+    .filter-label {
+      display: block; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px; font-weight: 600;
+    }
+    .chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    .chip-btn {
+      padding: 5px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      font-size: 13px;
+      color: var(--ink);
+      transition: all .14s;
+    }
+    .chip-btn:hover { border-color: var(--mustard); background: rgba(201, 169, 97, .14); }
+    .chip-btn.active { background: var(--mustard); border-color: var(--mustard); color: #fff; font-weight: 600; }
+    .chip-btn .cnt { opacity: .7; font-size: 11px; margin-left: 4px; }
+
+    .filter-select {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--paper);
+      outline: none;
+    }
+    .filter-select:focus { border-color: var(--mustard); }
+
+    /* Активные фильтры */
+    .active-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px; margin-top: 12px; }
+    .af-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(74, 93, 79, .12);
+      color: var(--green-deep);
+    }
+    .af-chip button { border: 0; background: transparent; color: inherit; display: grid; place-items: center; padding: 0; }
+    .af-chip button:hover { color: var(--danger); }
+
+    /* ─────────────────────────────
+       Каталог и сетка карточек
+       ───────────────────────────── */
+    main { max-width: 1180px; margin: 0 auto; padding: 0 18px; }
+
+    .catalog-head {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+      margin: 26px 0 6px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .catalog-kicker { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+    .catalog-title h2 { font-size: 24px; color: var(--green-deep); margin-top: 2px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    /* Карточка-картотечная единица */
+    .grid-card {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px 18px 14px;
+      cursor: pointer;
+      overflow: visible;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .grid-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .grid-card:active { transform: translateY(-1px); }
+
+    /* Загиб уголка как у бумажной карточки */
+    .grid-card::after {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, transparent 50%, rgba(74, 93, 79, .14) 50%);
+      border-bottom-left-radius: 12px;
+      pointer-events: none;
+    }
+    /* Перфорация-вкладка под статусом */
+    .grid-card::before {
+      content: '';
+      position: absolute; top: 0; left: 18px;
+      width: 2px; height: 100%;
+      background: repeating-linear-gradient(to bottom, transparent 0 7px, rgba(74, 93, 79, .10) 7px 8px);
+      pointer-events: none;
+    }
+
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px; font-weight: 600; letter-spacing: .04em;
+      background: var(--sc-bg, var(--mustard));
+      color: #fff;
+    }
+    .status-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.85); }
+
+    .card-body { display: flex; gap: 13px; align-items: center; margin-top: 12px; }
+
+    /* Аватар (круглая «печать») */
+    .avatar {
+      width: 56px; height: 56px; flex-shrink: 0;
+      border-radius: 50%;
+      background-size: cover; background-position: center;
+      border: 2px solid rgba(255, 255, 255, .85);
+      box-shadow: 0 2px 8px rgba(74, 93, 79, .22);
+    }
+    .avatar-letter {
+      display: grid; place-items: center;
+      color: #FBF3E4;
+      font-family: var(--font-serif);
+      font-size: 20px; font-weight: 700; letter-spacing: .02em;
+    }
+    .avatar-xl { width: 84px; height: 84px; font-size: 30px; }
+
+    .card-name { font-size: 17px; color: var(--ink); line-height: 1.25; }
+    .card-company { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+
+    .chip {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(201, 169, 97, .20);
+      border: 1px solid rgba(201, 169, 97, .45);
+      color: var(--mustard-deep);
+      white-space: nowrap;
+    }
+
+    .card-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 13px; padding-top: 10px;
+      border-top: 1px dashed var(--line);
+      font-size: 12px; color: var(--muted);
+    }
+    .card-foot .meta { display: flex; align-items: center; gap: 5px; }
+    .card-foot .chev { color: var(--green); }
+
+    /* ─────────────────────────────
+       Пустое состояние
+       ───────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 70px 20px 40px;
+      color: var(--muted);
+    }
+    .empty svg { opacity: .55; }
+    .empty h3 { margin-top: 16px; color: var(--green-deep); font-size: 20px; }
+    .empty p { margin: 8px 0 20px; font-size: 14px; }
+
+    /* ─────────────────────────────
+       Модальные окна
+       ───────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(74, 93, 79, .45);
+      display: flex; align-items: center; justify-content: center;
+      padding: 18px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s ease;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    .overlay.open { opacity: 1; pointer-events: auto; }
+
+    .modal {
+      width: 100%;
+      max-width: 560px;
+      max-height: min(88vh, 820px);
+      overflow-y: auto;
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(14px) scale(.98);
+      transition: transform .22s ease;
+    }
+    .overlay.open .modal { transform: none; }
+    .modal-wide { max-width: 640px; }
+
+    .modal-head {
+      position: sticky; top: 0; z-index: 5;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 18px 20px;
+      background: rgba(246, 234, 217, .96);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+      border-radius: 20px 20px 0 0;
+    }
+    .modal-head h2 { font-size: 19px; color: var(--green-deep); }
+
+    .modal-body { padding: 20px; }
+    .modal-foot {
+      display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;
+      padding: 14px 20px;
+      border-top: 1px solid var(--line);
+      position: sticky; bottom: 0;
+      background: rgba(246, 234, 217, .96);
+      backdrop-filter: blur(6px);
+      border-radius: 0 0 20px 20px;
+    }
+
+    /* ─────────────────────────────
+       Карточка контакта (детали)
+       ───────────────────────────── */
+    .detail-hero { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+
+    .detail-name { font-size: 26px; color: var(--green-deep); }
+    .detail-sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .detail-status-wrap { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .detail-section { margin-top: 22px; }
+    .detail-section-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--muted); font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .detail-section-title svg { color: var(--mustard-deep); }
+
+    .detail-list { display: grid; gap: 8px; }
+    .dl-row { display: flex; align-items: flex-start; gap: 9px; font-size: 14px; }
+    .dl-row svg { color: var(--green-light); flex-shrink: 0; margin-top: 1px; }
+    .dl-row a { color: var(--green); text-decoration: none; border-bottom: 1px dashed rgba(74,93,79,.4); }
+    .dl-row a:hover { color: var(--mustard-deep); border-bottom-color: var(--mustard-deep); }
+    .dl-row .lbl { color: var(--muted); min-width: 74px; font-size: 13px; }
+
+    .dl-grid { display: grid; grid-template-columns: 1fr; gap: 6px 18px; }
+    @media (min-width: 520px) { .dl-grid { grid-template-columns: 1fr 1fr; } }
+
+    .imp-date {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px;
+      background: rgba(212, 165, 165, .16);
+      border: 1px solid rgba(212, 165, 165, .35);
+      border-radius: 12px;
+      font-size: 14px;
+    }
+    .imp-date .d { font-weight: 600; color: var(--pink-deep); }
+
+    .context-box {
+      padding: 14px;
+      background: rgba(201, 169, 97, .12);
+      border-left: 3px solid var(--mustard);
+      border-radius: 0 12px 12px 0;
+      font-size: 14px; line-height: 1.55;
+    }
+
+    /* Дневник заметок */
+    .note-add-row, .tag-input-row {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .note-add-row input[type="text"], .note-add-row input[type="search"] {
+      flex: 1;
+    }
+    .field-input, .note-add-row input, .tag-input-row input, .search-input, textarea, select.field-select {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--paper);
+      outline: none;
+      transition: box-shadow .15s, border-color .15s;
+    }
+    .note-add-row input:focus, .field-input:focus, textarea:focus, select.field-select:focus,
+    .tag-input-row input:focus {
+      border-color: var(--mustard);
+      box-shadow: 0 0 0 3px rgba(201, 169, 97, .2);
+    }
+
+    .timeline { position: relative; padding-left: 0; }
+    .note-item {
+      position: relative;
+      padding: 12px 14px 12px 46px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, .55);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+    }
+    .note-item::before {
+      content: '';
+      position: absolute; left: 20px; top: 20px;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--mustard);
+      box-shadow: 0 0 0 3px rgba(201, 169, 97, .25);
+    }
+    .note-date { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--mustard-deep); font-weight: 600; }
+    .note-text { font-size: 14px; line-height: 1.5; margin-top: 4px; }
+
+    /* ─────────────────────────────
+       Форма
+       ───────────────────────────── */
+    .form-photo-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+    .form-photo-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .form-photo-actions .btn { padding: 8px 12px; font-size: 13px; }
+    .photo-url-input {
+      width: 100%; max-width: 260px;
+      padding: 8px 12px; font-size: 13px;
+      border: 1px solid var(--line); border-radius: 11px; background: var(--paper); outline: none;
+    }
+
+    .form-grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
+    @media (min-width: 480px) { .form-grid-2 { grid-template-columns: 1fr 1fr; } }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 560px) { .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+
+    label.form-label { display: block; margin-bottom: 14px; }
+    .form-label > span.lbl {
+      display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px;
+      letter-spacing: .02em;
+    }
+    .form-label .req { color: var(--pink-deep); }
+
+    textarea { resize: vertical; min-height: 62px; }
+
+    fieldset {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, .3);
+    }
+    legend {
+      font-family: var(--font-serif);
+      font-size: 14px; color: var(--green-deep);
+      padding: 0 8px;
+    }
+
+    .imp-row {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+    }
+    .imp-row input[type="date"] { max-width: 150px; }
+    .imp-row input[type="text"] { flex: 1; }
+    .imp-row .imp-del {
+      width: 34px; height: 34px; flex-shrink: 0;
+      border: 1px solid var(--line); border-radius: 9px;
+      background: transparent; color: var(--danger);
+      font-weight: 700; font-size: 15px;
+    }
+    .imp-row .imp-del:hover { background: rgba(176, 86, 63, .08); }
+
+    #fTagsChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tag-chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 4px 6px 4px 11px;
+      border-radius: 999px;
+      background: rgba(74, 93, 79, .14);
+      color: var(--green-deep);
+      font-size: 13px;
+    }
+    .tag-chip button {
+      width: 18px; height: 18px; border: 0; border-radius: 50%;
+      background: rgba(74, 93, 79, .22); color: var(--ink);
+      font-size: 12px; line-height: 1; display: grid; place-items: center;
+    }
+    .tag-chip button:hover { background: var(--danger); color: #fff; }
+    .suggest-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 4px; }
+
+    /* ─────────────────────────────
+       Нижняя навигация (PWA)
+       ───────────────────────────── */
+    .bottomnav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+      display: flex;
+      background: rgba(246, 234, 217, .96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    }
+    .bottomnav button {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px;
+      background: transparent; border: 0; border-radius: 12px;
+      font-size: 11px; color: var(--muted);
+      transition: color .15s, background .15s;
+    }
+    .bottomnav button:active { background: rgba(74, 93, 79, .08); }
+    .bottomnav button.lead {
+      color: var(--green-deep); font-weight: 600;
+    }
+    .bottomnav button svg { color: currentColor; }
+
+    @media (min-width: 860px) {
+      .bottomnav { display: none; }
+      body { padding-bottom: 30px; }
+    }
+
+    /* ─────────────────────────────
+       Toast-уведомления
+       ───────────────────────────── */
+    #toast {
+      position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(10px);
+      background: var(--green);
+      color: #FBF3E4;
+      padding: 11px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      box-shadow: var(--shadow-lg);
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 200;
+      max-width: calc(100vw - 40px);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%); }
+    @media (min-width: 860px) { #toast { bottom: 34px; } }
+
+    /* ─────────────────────────────
+       Настройки/данные
+       ───────────────────────────── */
+    .settings-group { margin-bottom: 22px; }
+    .settings-group h3 { font-size: 15px; color: var(--green-deep); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .settings-group h3 svg { color: var(--mustard-deep); }
+    .settings-btn-row { display: flex; flex-direction: column; gap: 8px; }
+    .settings-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    @media (min-width: 420px) { .settings-row { grid-template-columns: 1fr 1fr; } }
+    .pwa-note {
+      font-size: 12px; color: var(--muted); line-height: 1.5;
+      padding: 10px 12px; background: rgba(74, 93, 79, .08); border-radius: 10px;
+    }
+
+    /* Доступность отладки и переходам */
+    :focus-visible { outline: 2px solid var(--mustard); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h4l12 12-4 4L4 8z"/><path d="M13 3l8 8"/><path d="M5 11l2 2"/><path d="M11 15l2 2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">People Base</div>
+        <div class="brand-sub">ретро-картотека</div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="search-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+        </svg>
+        <input id="searchInput" class="search-input" type="search" placeholder="Поиск: имя, компания, тег…" autocomplete="off">
+        <button id="searchClearBtn" class="search-clear" aria-label="Очистить поиск">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <button id="filterBtn" class="icon-btn" title="Фильтры" aria-label="Фильтры">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 3H2l8 9.5V19l4 2v-8.5z"/>
+        </svg>
+      </button>
+
+      <button id="addBtn" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="hide-sm">Добавить</span>
+      </button>
+
+      <div class="menu">
+        <button id="menuBtn" class="icon-btn" title="Меню" aria-label="Меню">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/>
+          </svg>
+        </button>
+        <div class="menu-dropdown" id="menuDropdown">
+          <button class="menu-item" id="mnuExport" title="Экспорт базы в Excel">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Экспорт в Excel
+          </button>
+          <button class="menu-item" id="mnuImport" title="Импорт из Excel">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            Импорт из Excel
+          </button>
+          <div class="menu-sep"></div>
+          <button class="menu-item" id="mnuBackup" title="Скачать бэкап JSON">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8"/></svg>
+            Бэкап JSON (экспорт)
+          </button>
+          <button class="menu-item" id="mnuRestore" title="Восстановить из JSON">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v4h4M21 17v-4h-4"/><path d="M7 4.6A10 10 0 0 1 21 12M17 19.4A10 10 0 0 1 3 12"/></svg>
+            Восстановить из JSON
+          </button>
+          <div class="menu-sep"></div>
+          <button class="menu-item" id="mnuReset" title="Сбросить к демо-данным">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12a10 10 0 1 0 3-7.2M2 2v5h5"/></svg>
+            Сброс к демо-данным
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Панель фильтров -->
+  <div class="filter-panel" id="filterPanel">
+    <div class="filter-row">
+      <span class="filter-label">Поиск по тэгам</span>
+      <div class="chips-row" id="filterTags"></div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Статус</span>
+      <div class="chips-row" id="filterStatus">
+        <button class="chip-btn active" data-action="filter-status" data-val="">Все</button>
+        <button class="chip-btn" data-action="filter-status" data-val="активно">Активно</button>
+        <button class="chip-btn" data-action="filter-status" data-val="редко">Редко</button>
+        <button class="chip-btn" data-action="filter-status" data-val="потеряли связь">Потеряли связь</button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Город</span>
+      <select id="filterCity" class="filter-select">
+        <option value="">Все города</option>
+      </select>
+    </div>
+    <div class="filter-row chip-row">
+      <span class="filter-label" style="margin:0">Сортировка</span>
+      <select id="sortSelect" class="filter-select">
+        <option value="name">По имени (А–Я)</option>
+        <option value="fresh">По дате знакомства</option>
+        <option value="contact">По последнему контакту</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Активные фильтры -->
+  <div class="active-filters" id="activeFilters"></div>
+
+  <main>
+    <section class="catalog-head">
+      <div class="catalog-title">
+        <div class="catalog-kicker">Ваша картотека</div>
+        <h2 id="countLabel">0 контактов</h2>
+      </div>
+      <button id="resetFiltersBtn" class="btn btn-ghost hidden" style="display:none">Сбросить фильтры</button>
+    </section>
+
+    <!-- Сетка карточек -->
+    <section class="grid" id="grid"></section>
+
+    <!-- Пустое состояние -->
+    <div class="empty" id="emptyState" style="display:none">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 18v2M16 18v2"/>
+      </svg>
+      <h3 id="emptyTitle">Картотека пуста</h3>
+      <p id="emptyText">Добавьте первый контакт, чтобы начать вести свой архив.</p>
+      <button class="btn btn-primary" id="emptyAddBtn">+ Добавить контакт</button>
+    </div>
+  </main>
+
+  <!-- Модал: детали контакта -->
+  <div class="overlay" id="detailOverlay">
+    <div class="modal modal-wide" id="detailModal">
+      <div class="modal-head">
+        <h2 id="detailTitle">Контакт</h2>
+        <button class="icon-btn" data-close="detailOverlay" aria-label="Закрыть">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="detailBody"></div>
+      <div class="modal-foot" id="detailFoot"></div>
+    </div>
+  </div>
+
+  <!-- Модал: форма контакта -->
+  <div class="overlay" id="formOverlay">
+    <div class="modal modal-wide">
+      <div class="modal-head">
+        <h2 id="formTitle">Новый контакт</h2>
+        <button class="icon-btn" data-close="formOverlay" aria-label="Закрыть">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="file" id="photoInput" accept="image/*" hidden>
+
+        <!-- Фото -->
+        <div class="form-photo-row">
+          <div class="avatar avatar-xl avatar-letter" id="formPhotoPreview" style="background:var(--green)">?</div>
+          <div style="flex:1;min-width:200px">
+            <div class="form-photo-actions">
+              <button type="button" class="btn btn-ghost" id="photoUploadBtn">Загрузить фото</button>
+              <button type="button" class="btn btn-ghost" id="photoRemoveBtn" style="display:none">Удалить</button>
+            </div>
+            <label style="display:flex;gap:6px;margin-top:8px;align-items:center">
+              <input type="url" class="photo-url-input" id="photoUrlInput" placeholder="или вставьте URL фото">
+              <button type="button" class="btn btn-ghost" id="photoUrlBtn" style="padding:8px 12px">ОК</button>
+            </label>
+          </div>
+        </div>
+
+        <label class="form-label"><span class="lbl">ФИО <span class="req">*</span></span>
+          <input id="fName" class="field-input" maxlength="120" required>
+        </label>
+
+        <div class="form-grid-2">
+          <label class="form-label"><span class="lbl">Телефон</span>
+            <input id="fPhone" class="field-input" type="tel" placeholder="+7 (___) ___-__-__">
+          </label>
+          <label class="form-label"><span class="lbl">Email</span>
+            <input id="fEmail" class="field-input" type="email" placeholder="name@example.ru">
+          </label>
+        </div>
+
+        <div class="form-grid-2">
+          <label class="form-label"><span class="lbl">Компания</span><input id="fCompany" class="field-input" maxlength="120"></label>
+          <label class="form-label"><span class="lbl">Должность</span><input id="fPosition" class="field-input" maxlength="120"></label>
+        </div>
+
+        <div class="form-grid-2">
+          <label class="form-label"><span class="lbl">Город</span><input id="fCity" class="field-input" maxlength="80"></label>
+          <label class="form-label"><span class="lbl">Адрес</span><input id="fAddress" class="field-input" maxlength="160"></label>
+        </div>
+
+        <fieldset>
+          <legend>Соцсети</legend>
+          <div class="form-grid-3">
+            <label class="form-label" style="margin:0"><span class="lbl">Telegram</span><input id="fTg" class="field-input" placeholder="@username"></label>
+            <label class="form-label" style="margin:0"><span class="lbl">Instagram</span><input id="fIg" class="field-input" placeholder="@username"></label>
+            <label class="form-label" style="margin:0"><span class="lbl">VK</span><input id="fVk" class="field-input" placeholder="id или username"></label>
+          </div>
+        </fieldset>
+
+        <div class="form-grid-2">
+          <label class="form-label"><span class="lbl">Статус</span>
+            <select id="fStatus" class="field-select">
+              <option value="активно">Активно</option>
+              <option value="редко">Редко</option>
+              <option value="потеряли связь">Потеряли связь</option>
+            </select>
+          </label>
+          <label class="form-label"><span class="lbl">Дата знакомства</span>
+            <input id="fDateMet" class="field-input" type="date">
+          </label>
+        </div>
+
+        <label class="form-label"><span class="lbl">Тэги (Enter — добавить)</span>
+          <div class="tag-input-row">
+            <input id="fTagInput" class="field-input" list="tagSuggestions" maxlength="40" placeholder="Например: Йога, Проект А…">
+            <datalist id="tagSuggestions"></datalist>
+            <button type="button" class="btn btn-ghost" id="fTagAddBtn">+</button>
+          </div>
+          <div class="chips" id="fTagsChips"></div>
+          <div class="suggest-row" id="fTagSuggest"></div>
+        </label>
+
+        <fieldset>
+          <legend>Важные даты</legend>
+          <div id="impDates"></div>
+          <button type="button" class="btn btn-ghost" id="impAddBtn">+ Добавить важную дату</button>
+        </fieldset>
+
+        <label class="form-label"><span class="lbl">Последний контакт</span>
+          <input id="fLastContact" class="field-input" type="date">
+        </label>
+
+        <label class="form-label"><span class="lbl">Как познакомились</span>
+          <textarea id="fContext" class="field-input" rows="3" maxlength="1000" placeholder="Где и при каких обстоятельствах…"></textarea>
+        </label>
+
+        <label class="form-label"><span class="lbl">Темы для разговора</span>
+          <textarea id="fTopics" class="field-input" rows="2" maxlength="500" placeholder="Книги, кино, путешествия…"></textarea>
+        </label>
+
+        <fieldset>
+          <legend>Новая заметка (дневник)</legend>
+          <div class="note-add-row">
+            <input type="text" id="fNoteText" placeholder="Что произошло?" maxlength="600">
+            <input type="date" id="fNoteDate">
+          </div>
+        </fieldset>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" data-close="formOverlay">Отмена</button>
+        <button class="btn btn-primary" id="formSaveBtn">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модал: настройки и данные -->
+  <div class="overlay" id="settingsOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Настройки и данные</h2>
+        <button class="icon-btn" data-close="settingsOverlay" aria-label="Закрыть">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <h3>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M8 15l2 2 5-5"/></svg>
+            Excel
+          </h3>
+          <div class="settings-row">
+            <button class="btn" id="setExportExcel">Экспорт в Excel</button>
+            <button class="btn" id="setImportExcel">Импорт из Excel</button>
+          </div>
+          <p class="pwa-note" style="margin-top:8px">Импорт автоматически распознаёт колонки («Имя», «Телефон», «Email», «Компания», «Тэги» …).</p>
+        </div>
+        <div class="settings-group">
+          <h3>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>
+            Резервное копирование
+          </h3>
+          <div class="settings-row">
+            <button class="btn" id="setBackupJSON">Скачать бэкап (JSON)</button>
+            <button class="btn" id="setRestoreJSON">Восстановить из JSON</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h3>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12a10 10 0 1 0 3-7.2M2 2v5h5"/></svg>
+            Демо-данные
+          </h3>
+          <button class="btn" id="setResetDemo">Сбросить к демо-данным</button>
+        </div>
+        <div class="settings-group">
+          <h3>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="6"/></svg>
+            О приложении
+          </h3>
+          <p class="pwa-note">People Base хранит ваши контакты только в браузере (LocalStorage). Для установки на телефон откройте приложение через HTTPS и выберите «Добавить на главный экран».</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Нижняя навигация -->
+  <nav class="bottomnav">
+    <button id="navList">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/>
+      </svg>
+      Список
+    </button>
+    <button class="lead" id="navAdd">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Добавить
+    </button>
+    <button id="navSettings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34 1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.03z"/>
+      </svg>
+      Настройки
+    </button>
+  </nav>
+
+  <!-- Сквозной input для файлов импорта -->
+  <input type="file" id="fileInput" hidden>
+
+  <div id="toast" role="status"></div>
+
+  <!-- ════════════════════════════════════════════════════════
+       ЛОГИКА ПРИЛОЖЕНИЯ
+       ════════════════════════════════════════════════════════ -->
+  <script>
+  'use strict';
+
+  /* ══════════════ 1. Константы и состояние ══════════════ */
+  const LS_CONTACTS = 'people_base_contacts_v1';
+  const LS_SETTINGS = 'people_base_settings_v1';
+
+  /** Статусы: значение → цвет */
+  const STATUS_COLORS = {
+    'активно': '#4A5D4F',
+    'редко': '#C9A961',
+    'потеряли связь': '#c08a8a'
+  };
+
+  const state = {
+    contacts: [],
+    filters: { search: '', tags: new Set(), status: '', city: '', sort: 'name' }
+  };
+
+  /** Переменные текущего редактирования */
+  let editingId = null;      // id контакта в форме (null = новый)
+  let formPhoto = '';        // фото в форме (base64/URL)
+  let formTags = [];         // выбранные тэги в форме
+
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+  /* ══════════════ 2. Утилиты ══════════════ */
+
+  /** Генерация UUID (с фолбэком для старых браузеров) */
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  /** Сегодняшняя дата в формате YYYY-MM-DD */
+  function todayStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+
+  /** Форматирование даты для отображения */
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + 'T00:00:00');
+    if (isNaN(d)) return iso;
+    const months = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  /** Экранирование HTML для защиты от XSS */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  /** Инициалы из ФИО */
+  function initials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    return (parts[0][0] + (parts.length > 1 ? parts[1][0] : '')).toUpperCase();
+  }
+
+  /** Ретро-палитра для аватара по имени */
+  const AVATAR_COLORS = ['#4A5D4F', '#C9A961', '#D4A5A5', '#7a8f7e', '#b59063', '#8d6f63'];
+  function avatarColor(name) {
+    let h = 0;
+    for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  }
+
+  /** Русская плюрализация: контакт/контакта/контактов */
+  function plural(n, one, few, many) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+    return many;
+  }
+
+  /** Нормализация строки для поиска/сравнения */
+  function norm(s) {
+    return String(s == null ? '' : s).toLowerCase().trim();
+  }
+
+  /** Хэш-подобное значение для сортировки */
+  function isoVal(iso) { return iso || '0000-00-00'; }
+
+  /* ══════════════ 3. Хранилище ══════════════ */
+
+  /** Загрузка контактов; при пустом хранилище — демо-данные */
+  function loadContacts() {
+    try {
+      const raw = localStorage.getItem(LS_CONTACTS);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        state.contacts = Array.isArray(arr) ? arr.map(normalizeContact) : [];
+      } else {
+        state.contacts = demoData();
+        persist();
+      }
+    } catch (e) {
+      state.contacts = demoData();
+      persist();
+    }
+  }
+
+  /** Сохранение в LocalStorage */
+  function persist() {
+    try { localStorage.setItem(LS_CONTACTS, JSON.stringify(state.contacts)); }
+    catch (e) { toast('Ошибка сохранения (переполнение памяти)'); }
+  }
+
+  /** Заполнение пустых полей контакта дефолтами */
+  function normalizeContact(c) {
+    return Object.assign({
+      id: uuid(), name: '', photo: '', phone: '', email: '',
+      company: '', position: '', socials: { telegram: '', instagram: '', vk: '' },
+      context: '', dateMet: '', tags: [], notes: [], importantDates: [],
+      lastContact: '', topics: '', status: 'активно', address: '', city: ''
+    }, c, {
+      socials: Object.assign({ telegram: '', instagram: '', vk: '' }, c.socials || {}),
+      tags: Array.isArray(c.tags) ? c.tags : [],
+      notes: Array.isArray(c.notes) ? c.notes : [],
+      importantDates: Array.isArray(c.importantDates) ? c.importantDates : []
+    });
+  }
+
+  /** Сброс к демо-данным */
+  function resetDemo() {
+    if (!confirm('Заменить все контакты демо-данными? Текущие будут удалены.')) return;
+    state.contacts = demoData();
+    state.filters.tags.clear();
+    state.filters.search = '';
+    state.filters.status = '';
+    state.filters.city = '';
+    persist();
+    syncSearchUI();
+    renderAll();
+    toast('Демо-данные загружены');
+  }
+
+  /* ══════════════ 4. Демо-данные (7 контактов) ══════════════ */
+  function demoData() {
+    return [
+      {
+        id: uuid(), name: 'Анна Петрова', phone: '+7 (926) 123-45-67', email: 'anna.petrova@example.ru',
+        company: 'Студия йоги «Лотос»', position: 'Инструктор',
+        socials: { telegram: '@anna_yoga', instagram: '@anna.petrova', vk: 'anna_petrova' },
+        context: 'Познакомились на ретрите в Карелии, вместе ходили на вечерние медитации.',
+        dateMet: '2024-06-15', tags: ['Йога', 'Друзья'],
+        notes: [
+          { date: '2025-01-12', text: 'Провели совместную медитацию у неё дома.' },
+          { date: '2025-06-02', text: 'Ходили на выставку восточного искусства в Третьяковке.' },
+          { date: '2026-07-10', text: 'Обсудили план летней поездки на Алтай.' }
+        ],
+        importantDates: [
+          { date: '1990-03-14', label: 'День рождения' },
+          { date: '2024-06-15', label: 'Годовщина знакомства' }
+        ],
+        lastContact: '2026-08-20', topics: 'Книги, путешествия, философия, детокс-рецепты',
+        status: 'активно', address: 'ул. Тверская, 12', city: 'Москва'
+      },
+      {
+        id: uuid(), name: 'Михаил Иванов', phone: '+7 (921) 555-30-40', email: 'm.ivanov@example.ru',
+        company: 'ООО «Вектор»', position: 'Team Lead',
+        socials: { telegram: '@mikhail_dev', instagram: '', vk: 'mivanov' },
+        context: 'Познакомились на хакатоне, позже он втянул меня в проект А.',
+        dateMet: '2023-11-03', tags: ['Проект А', 'Коллеги'],
+        notes: [
+          { date: '2024-01-20', text: 'Первый созвон по проекту А, распределили задачи.' },
+          { date: '2025-09-14', text: 'Встретились офлайн на конференции, долго обсуждали архитектуру.' },
+          { date: '2026-03-25', text: 'Короткий созвон — у него новый стартап, договорились созвониться в мае.' }
+        ],
+        importantDates: [{ date: '1987-08-02', label: 'День рождения' }],
+        lastContact: '2026-03-25', topics: 'Технологии, спорт, инвестиции',
+        status: 'редко', address: 'Невский пр., 88', city: 'Санкт-Петербург'
+      },
+      {
+        id: uuid(), name: 'Елена Сидорова', phone: '+7 (903) 214-87-65', email: 'elena.sidorova@example.ru',
+        company: 'Школа № 27', position: 'Классный руководитель',
+        socials: { telegram: '@lena_sid', instagram: '@lena.sidorova', vk: '' },
+        context: 'Познакомились на родительском собрании — наши дети учатся в одном классе.',
+        dateMet: '2022-09-01', tags: ['Школа', 'Родители'],
+        notes: [
+          { date: '2024-05-20', text: 'Организовали совместную поездку класса в музей.' },
+          { date: '2025-12-15', text: 'Обсудили новогодний утренник, она отвечает за сценарий.' },
+          { date: '2026-08-28', text: 'Договорились объединить угощения на первое сентября.' }
+        ],
+        importantDates: [
+          { date: '1985-11-22', label: 'День рождения' },
+          { date: '2022-09-01', label: 'День знакомства' }
+        ],
+        lastContact: '2026-09-01', topics: 'Дети, воспитание, книжные новинки, дача',
+        status: 'активно', address: 'ул. Баумана, 5А', city: 'Казань'
+      },
+      {
+        id: uuid(), name: 'Дмитрий Кузнецов', phone: '+7 (343) 900-22-33', email: 'd.kuznetsov@example.ru',
+        company: 'Фриланс', position: 'Дизайнер',
+        socials: { telegram: '', instagram: '', vk: 'dkuznetsov' },
+        context: 'Друзья со школы, вместе делали проект Б.',
+        dateMet: '2005-09-01', tags: ['Проект Б', 'Старые друзья'],
+        notes: [
+          { date: '2024-02-10', text: 'Помог переписать портфолио, обещал прислать финальную версию.' },
+          { date: '2025-11-10', text: 'Написал после долгого молчания, но потом снова пропал.' }
+        ],
+        importantDates: [{ date: '1988-01-30', label: 'День рождения' }],
+        lastContact: '2025-11-10', topics: 'Дизайн, музыка, кино',
+        status: 'потеряли связь', address: 'ул. Ленина, 21', city: 'Екатеринбург'
+      },
+      {
+        id: uuid(), name: 'Ольга Смирнова', phone: '+7 (495) 777-12-45', email: 'olga.smirnova@example.ru',
+        company: 'Студия «Ритм»', position: 'Танцовщица',
+        socials: { telegram: '@olga_dance', instagram: '@olga.rithm', vk: 'olgasm' },
+        context: 'Познакомились на бачата-вечеринке, теперь ходим на танцы вместе.',
+        dateMet: '2024-04-08', tags: ['Танцы', 'Друзья'],
+        notes: [
+          { date: '2025-02-14', text: 'Выступали дуэтом на вечеринке в честь Дня Валентина.' },
+          { date: '2026-06-19', text: 'Попросила помочь смонтировать видео для конкурса.' },
+          { date: '2026-08-30', text: 'Выбрали курс контемпа на сентябрь.' }
+        ],
+        importantDates: [{ date: '1993-05-07', label: 'День рождения' }],
+        lastContact: '2026-08-30', topics: 'Танцы, музыка, путешествия, аниме',
+        status: 'активно', address: 'ул. Арбат, 33', city: 'Москва'
+      },
+      {
+        id: uuid(), name: 'Сергей Волков', phone: '+7 (383) 411-77-90', email: 's.volkov@example.ru',
+        company: 'АО «СибТех»', position: 'Технический директор',
+        socials: { telegram: '@sv_tech', instagram: '', vk: 'volkov_sergey' },
+        context: 'Был руководителем моего первого проекта, стал наставником.',
+        dateMet: '2019-03-11', tags: ['Коллеги', 'Наставники'],
+        notes: [
+          { date: '2024-10-01', text: 'Созвон по карьере — дал несколько важных советов.' },
+          { date: '2025-06-22', text: 'Встретились на конференции в Новосибирске.' },
+          { date: '2026-02-05', text: 'Позвонил поздравить с повышением.' }
+        ],
+        importantDates: [{ date: '1975-12-12', label: 'День рождения' }],
+        lastContact: '2026-02-05', topics: 'Управление, технологии, загородная жизнь',
+        status: 'редко', address: 'ул. Кольцова, 14', city: 'Новосибирск'
+      },
+      {
+        id: uuid(), name: 'Мария Козлова', phone: '+7 (831) 230-66-77', email: 'maria.kozlova@example.ru',
+        company: 'Издательство «Лист»', position: 'Редактор',
+        socials: { telegram: '@masha_kozlova', instagram: '@masha.kozlova', vk: 'mkzlv' },
+        context: 'Познакомились через Михаила на проекте А, быстро подружились.',
+        dateMet: '2023-11-28', tags: ['Хобби', 'Проект А'],
+        notes: [
+          { date: '2024-03-09', text: 'Сходили на мастер-класс по керамике.' },
+          { date: '2025-10-16', text: 'Обменялись книгами, обсуждали целый месяц.' },
+          { date: '2026-08-12', text: 'Она переезжает в Москву — будем рядом!' }
+        ],
+        importantDates: [{ date: '1991-06-25', label: 'День рождения' }],
+        lastContact: '2026-08-12', topics: 'Книги, керамика, кошки, путешествия',
+        status: 'активно', address: 'ул. Большая Покровская, 4', city: 'Нижний Новгород'
+      }
+    ].map(normalizeContact);
+  }
+
+  /* ══════════════ 5. Рендеринг ══════════════ */
+
+  /** Поиск и фильтрация контактов */
+  function getFiltered() {
+    const f = state.filters;
+    const q = norm(f.search);
+    const cityQ = norm(f.city);
+    return state.contacts
+      .filter(c => {
+        if (q) {
+          const hay = norm(
+            [c.name, c.company, c.position, c.city, c.phone, c.email, (c.tags || []).join(' ')].join(' ')
+          );
+          if (!hay.includes(q)) return false;
+        }
+        if (f.status && c.status !== f.status) return false;
+        if (cityQ && norm(c.city) !== cityQ) return false;
+        if (f.tags.size) {
+          const tags = (c.tags || []).map(norm);
+          for (const t of f.tags) if (!tags.includes(t)) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (f.sort === 'fresh') return isoVal(b.dateMet).localeCompare(isoVal(a.dateMet));
+        if (f.sort === 'contact') return isoVal(b.lastContact).localeCompare(isoVal(a.lastContact));
+        return a.name.localeCompare(b.name, 'ru');
+      });
+  }
+
+  /** HTML-карточки контакта в сетке */
+  function cardHTML(c) {
+    const statusColor = STATUS_COLORS[c.status] || STATUS_COLORS['активно'];
+    const avatar = c.photo
+      ? `<div class="avatar" style="background-image:url(&quot;${esc(c.photo)}&quot;)"></div>`
+      : `<div class="avatar avatar-letter" style="background:${avatarColor(c.name)}">${esc(initials(c.name))}</div>`;
+    const tags = (c.tags || []).slice(0, 4)
+      .map(t => `<span class="chip">${esc(t)}</span>`).join('');
+    const place = [c.company, c.city].filter(Boolean).join(' · ');
+    return `
+      <article class="grid-card" data-action="open-detail" data-id="${esc(c.id)}">
+        <div class="card-top">
+          <div class="status-pill" style="--sc-bg:${statusColor}">${esc(c.status || 'активно')}</div>
+        </div>
+        <div class="card-body">
+          ${avatar}
+          <div style="min-width:0">
+            <h3 class="card-name">${esc(c.name || 'Без имени')}</h3>
+            ${place ? `<p class="card-company">${esc(place)}</p>` : ''}
+          </div>
+        </div>
+        ${tags ? `<div class="card-tags">${tags}</div>` : ''}
+        <div class="card-foot">
+          <span class="meta">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            ${c.lastContact ? formatDate(c.lastContact) : 'нет контакта'}
+          </span>
+          <span class="chev">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </span>
+        </div>
+      </article>`;
+  }
+
+  /** Отрисовка сетки + счётчиков */
+  function renderGrid() {
+    const grid = $('#grid');
+    const list = getFiltered();
+    const total = state.contacts.length;
+    const shown = list.length;
+
+    $('#countLabel').textContent =
+      `${shown} ${plural(shown, 'контакт', 'контакта', 'контактов')}` +
+      (shown !== total ? ` из ${total}` : '');
+
+    grid.innerHTML = list.map(cardHTML).join('');
+
+    const empty = $('#emptyState');
+    if (list.length === 0) {
+      empty.style.display = 'block';
+      const hasFilter = !!(state.filters.search || state.filters.status ||
+        state.filters.city || state.filters.tags.size);
+      $('#emptyTitle').textContent = hasFilter ? 'Ничего не найдено' : 'Картотека пуста';
+      $('#emptyText').textContent = hasFilter
+        ? 'Попробуйте изменить условия поиска или сбросить фильтры.'
+        : 'Добавьте первый контакт, чтобы начать вести свой архив.';
+      $('#emptyAddBtn').style.display = hasFilter ? 'none' : 'inline-flex';
+      $('#resetFiltersBtn').style.display = hasFilter ? 'inline-flex' : 'none';
+    } else {
+      empty.style.display = 'none';
+      $('#resetFiltersBtn').style.display = activeFilterCount() ? 'inline-flex' : 'none';
+    }
+  }
+
+  /** Подсчёт активных фильтров */
+  function activeFilterCount() {
+    return (state.filters.search ? 1 : 0) + (state.filters.status ? 1 : 0) +
+      (state.filters.city ? 1 : 0) + state.filters.tags.size;
+  }
+
+  /** Список всех тэгов с количеством */
+  function allTags() {
+    const map = {};
+    for (const c of state.contacts) {
+      for (const t of (c.tags || [])) {
+        const k = norm(t);
+        if (!k) continue;
+        if (!map[k]) map[k] = { label: t, count: 0 };
+        map[k].count++;
+      }
+    }
+    return Object.values(map).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'ru'));
+  }
+
+  /** Отрисовка фильтров: тэги + города + счётчики */
+  function renderFilters() {
+    const f = state.filters;
+    const tagBox = $('#filterTags');
+
+    // Тэги с количеством
+    tagBox.innerHTML = allTags().map(t => {
+      const key = norm(t.label);
+      const active = f.tags.has(key);
+      return `<button class="chip-btn ${active ? 'active' : ''}" data-action="filter-tag" data-key="${esc(key)}">
+        ${esc(t.label)}<span class="cnt">${t.count}</span></button>`;
+    }).join('');
+
+    // Статусы
+    $$('#filterStatus .chip-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.val === f.status);
+    });
+
+    // Города
+    const citySelect = $('#filterCity');
+    const cities = [...new Set(state.contacts.map(c => norm(c.city)).filter(Boolean))].sort();
+    const prev = citySelect.value;
+    citySelect.innerHTML = `<option value="">Все города</option>` +
+      cities.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    if (cities.includes(norm(prev))) citySelect.value = norm(prev);
+    else citySelect.value = '';
+
+    // Сортировка
+    $('#sortSelect').value = f.sort;
+  }
+
+  /** Чипы активных фильтров */
+  function renderActiveFilters() {
+    const box = $('#activeFilters');
+    const f = state.filters;
+    const chips = [];
+
+    if (f.search) chips.push({ key: 'search', val: '', label: 'Поиск: «' + f.search + '»' });
+    if (f.status) chips.push({ key: 'status', val: '', label: 'Статус: ' + f.status });
+    if (f.city) chips.push({ key: 'city', val: '', label: 'Город: ' + f.city });
+    for (const t of f.tags) chips.push({ key: 'tag', val: t, label: '#' + t });
+
+    box.innerHTML = chips.map(ch => `
+      <span class="af-chip">
+        ${esc(ch.label)}
+        <button data-action="clear-filter" data-key="${esc(ch.key)}" data-val="${esc(ch.val)}" aria-label="Убрать">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </span>`).join('');
+    box.style.display = chips.length ? 'flex' : 'none';
+  }
+
+  /** Полная перерисовка интерфейса */
+  function renderAll() {
+    renderGrid();
+    renderFilters();
+    renderActiveFilters();
+  }
+
+  /** Синхронизация индикатора очистки поиска */
+  function syncSearchUI() {
+    $('#searchClearBtn').classList.toggle('visible', !!state.filters.search);
+  }
+
+  /* ══════════════ 6. Карточка контакта (детали) ══════════════ */
+
+  /** Построение ссылки соцсети */
+  function socLink(base, handle) {
+    if (!handle) return '';
+    const h = handle.replace(/^@/, '').replace(/^https?:\/\/(www\.)?/, '').split('/').pop();
+    return base + h;
+  }
+
+  function openDetail(id) {
+    const c = state.contacts.find(x => x.id === id);
+    if (!c) return;
+    renderDetail(c);
+    openOverlay('detailOverlay');
+  }
+
+  function renderDetail(c) {
+    const s = c.socials || {};
+    const statusColor = STATUS_COLORS[c.status] || STATUS_COLORS['активно'];
+    const avatar = c.photo
+      ? `<div class="avatar avatar-xl" style="background-image:url(&quot;${esc(c.photo)}&quot;)"></div>`
+      : `<div class="avatar avatar-xl avatar-letter" style="background:${avatarColor(c.name)}">${esc(initials(c.name))}</div>`;
+
+    const tel = c.phone ? `<div class="dl-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2z"/></svg><a href="tel:${esc(c.phone)}">${esc(c.phone)}</a></div>` : '';
+    const email = c.email ? `<div class="dl-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></div>` : '';
+
+    const tg = s.telegram ? `<div class="dl-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 4L3 11l5 2 1.5 6 3.5-4 5 3z" fill="currentColor" stroke="none"/></svg><a target="_blank" rel="noopener" href="${esc(socLink('https://t.me/', s.telegram))}">${esc(s.telegram)}</a></div>` : '';
+    const ig = s.instagram ? `<div class="dl-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor" stroke="none"/></svg><a target="_blank" rel="noopener" href="${esc(socLink('https://instagram.com/', s.instagram))}">${esc(s.instagram)}</a></div>` : '';
+    const vk = s.vk ? `<div class="dl-row"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8c3 1 6 1 7 1 2.5 8 7 5.5 7 5.5"/><path d="M5 14c4 2 8 3.5 13 3.5"/></svg><a target="_blank" rel="noopener" href="${esc(socLink('https://vk.com/', s.vk))}">${esc(s.vk)}</a></div>` : '';
+
+    const place = (c.address ? c.address + (c.city ? ', ' + c.city : '') : c.city) || '';
+    const org = (c.company || c.position) ? `${[c.company, c.position].filter(Boolean).join(' — ')}` : '';
+
+    const notes = [...(c.notes || [])].sort((a, b) => b.date.localeCompare(a.date))
+      .map(n => `
+        <div class="note-item">
+          <div class="note-date">${esc(formatDate(n.date))}</div>
+          <div class="note-text">${esc(n.text)}</div>
+        </div>`).join('');
+
+    const impDates = (c.importantDates || []).filter(d => d && d.date)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map(d => `<div class="imp-date"><span class="d">${esc(formatDate(d.date))}</span><span>${esc(d.label || '')}</span></div>`).join('');
+
+    const tags = (c.tags || []).map(t => `<span class="chip">${esc(t)}</span>`).join(' ');
+
+    $('#detailTitle').textContent = c.name || 'Контакт';
+    $('#detailBody').innerHTML = `
+      <div class="detail-hero">
+        ${avatar}
+        <div style="min-width:0">
+          <h3 class="detail-name">${esc(c.name || 'Без имени')}</h3>
+          ${org ? `<div class="detail-sub">${esc(org)}</div>` : ''}
+          <div class="detail-status-wrap">
+            <span class="status-pill" style="--sc-bg:${statusColor}">${esc(c.status || 'активно')}</span>
+            ${tags}
+          </div>
+        </div>
+      </div>
+
+      ${(tel || email || tg || ig || vk) ? `
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 7l10 6 10-6"/></svg>
+          Связь
+        </div>
+        <div class="detail-list">${tel}${email}${tg}${ig}${vk}</div>
+      </div>` : ''}
+
+      ${org ? `
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M18 12v9M15 21h6"/></svg>
+          Работа
+        </div>
+        <div class="detail-list">${org ? `<div class="dl-row"><span class="lbl">Компания</span><span>${esc(org)}</span></div>` : ''}</div>
+      </div>` : ''}
+
+      ${place ? `
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Адрес
+        </div>
+        <div class="detail-list"><div class="dl-row"><span class="lbl">Где живёт</span><span>${esc(place)}</span></div></div>
+      </div>` : ''}
+
+      ${(c.context || c.dateMet) ? `
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Знакомство
+        </div>
+        ${c.context ? `<div class="context-box">${esc(c.context)}</div>` : ''}
+        ${c.dateMet ? `<div class="dl-row" style="margin-top:8px"><span class="lbl">Дата</span><span>${esc(formatDate(c.dateMet))}</span></div>` : ''}
+      </div>` : ''}
+
+      ${impDates ? `
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Важные даты
+        </div>
+        <div class="chips-row">${impDates}</div>
+      </div>` : ''}
+
+      ${c.topics ? `
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v6H8v6h12"/><circle cx="6" cy="5" r="2"/><circle cx="6" cy="17" r="2"/></svg>
+          Темы для разговора
+        </div>
+        <div class="dl-row"><span>${esc(c.topics)}</span></div>
+      </div>` : ''}
+
+      ${c.lastContact ? `
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Связи
+        </div>
+        <div class="dl-row"><span class="lbl">Были на связи</span><span>${esc(formatDate(c.lastContact))}</span></div>
+      </div>` : ''}
+
+      <div class="detail-section">
+        <div class="detail-section-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          Дневник заметок
+        </div>
+        <div class="note-add-row">
+          <input type="search" id="noteText" placeholder="Новая запись…" maxlength="600">
+          <input type="date" id="noteDate" value="${todayStr()}">
+          <button class="btn btn-primary" id="noteAddBtn" data-action="add-note" data-id="${esc(c.id)}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+        ${notes ? `<div class="timeline">${notes}</div>` : '<p style="color:var(--muted);font-size:13px">Заметок пока нет.</p>'}
+      </div>`;
+
+    $('#detailFoot').innerHTML = `
+      <button class="btn" data-close="detailOverlay">Закрыть</button>
+      <button class="btn" data-action="edit-contact" data-id="${esc(c.id)}">Редактировать</button>
+      <button class="btn danger-text" data-action="delete-contact" data-id="${esc(c.id)}">Удалить</button>`;
+  }
+
+  /** Добавление заметки из карточки контакта */
+  function addNoteFromDetail(id) {
+    const c = state.contacts.find(x => x.id === id);
+    if (!c) return;
+    const text = $('#noteText').value.trim();
+    if (!text) { toast('Введите текст заметки'); return; }
+    const date = $('#noteDate').value || todayStr();
+    c.notes = c.notes || [];
+    c.notes.push({ date, text });
+    c.lastContact = todayStr();
+    persist();
+    renderDetail(c);
+    renderGrid();
+    toast('Заметка добавлена');
+  }
+
+  /** Удаление контакта */
+  function deleteContact(id) {
+    const c = state.contacts.find(x => x.id === id);
+    if (!c) return;
+    if (!confirm(`Удалить контакт «${c.name}»?`)) return;
+    state.contacts = state.contacts.filter(x => x.id !== id);
+    persist();
+    closeOverlay('detailOverlay');
+    renderAll();
+    toast('Контакт удалён');
+  }
+
+  /* ══════════════ 7. Форма / CRUD ══════════════ */
+
+  /** Открыть форму: для нового или редактируемого контакта */
+  function openForm(id) {
+    closeOverlay('detailOverlay');
+
+    let c = null;
+    if (id) {
+      c = state.contacts.find(x => x.id === id);
+    }
+    editingId = c ? c.id : null;
+    formPhoto = c ? (c.photo || '') : '';
+    formTags = c ? [...(c.tags || [])] : [];
+
+    $('#formTitle').textContent = c ? 'Редактировать контакт' : 'Новый контакт';
+    $('#fName').value = c ? c.name : '';
+    $('#fPhone').value = c ? c.phone : '';
+    $('#fEmail').value = c ? c.email : '';
+    $('#fCompany').value = c ? c.company : '';
+    $('#fPosition').value = c ? c.position : '';
+    $('#fCity').value = c ? c.city : '';
+    $('#fAddress').value = c ? c.address : '';
+    $('#fTg').value = c && c.socials ? c.socials.telegram : '';
+    $('#fIg').value = c && c.socials ? c.socials.instagram : '';
+    $('#fVk').value = c && c.socials ? c.socials.vk : '';
+    $('#fStatus').value = c ? c.status : 'активно';
+    $('#fDateMet').value = c ? c.dateMet : '';
+    $('#fLastContact').value = c ? c.lastContact : todayStr();
+    $('#fContext').value = c ? c.context : '';
+    $('#fTopics').value = c ? c.topics : '';
+    $('#fNoteText').value = '';
+    $('#fNoteDate').value = todayStr();
+    $('#photoUrlInput').value = '';
+
+    document.getElementById('photoInput').value = '';
+
+    // Важные даты
+    const box = $('#impDates');
+    box.innerHTML = '';
+    const impDates = c ? c.importantDates : [{ date: '', label: '' }];
+    impDates.forEach(d => addImpRow(d));
+
+    renderFormPhoto();
+    renderTagChips();
+    openOverlay('formOverlay');
+  }
+
+  /** Превью фото в форме (из formPhoto) */
+  function renderFormPhoto() {
+    const preview = $('#formPhotoPreview');
+    if (formPhoto) {
+      preview.style.backgroundImage = `url("${formPhoto}")`;
+      preview.style.backgroundSize = 'cover';
+      preview.style.backgroundPosition = 'center';
+      preview.textContent = '';
+      preview.style.background = '';
+      $('#photoRemoveBtn').style.display = 'inline-flex';
+    } else {
+      preview.style.backgroundImage = '';
+      preview.style.background = avatarColor($('#fName').value || '?');
+      preview.textContent = initials($('#fName').value || '?');
+      $('#photoRemoveBtn').style.display = 'none';
+    }
+  }
+
+  /** Загрузка фото через FileReader с пережатием в canvas (≤512px) */
+  function handlePhotoFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target.result;
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 512;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        formPhoto = canvas.toDataURL('image/jpeg', 0.82);
+        renderFormPhoto();
+        toast('Фото загружено');
+      };
+      img.onerror = () => {
+        formPhoto = src;
+        renderFormPhoto();
+        toast('Фото загружено (без сжатия)');
+      };
+      img.src = src;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /** Добавить строку важной даты */
+  function addImpRow(data) {
+    data = data || {};
+    const row = document.createElement('div');
+    row.className = 'imp-row';
+    row.innerHTML = `
+      <input type="date" class="imp-date-i" value="${esc(data.date || '')}">
+      <input type="text" class="imp-label-i" placeholder="День рождения, годовщина…" maxlength="80" value="${esc(data.label || '')}">
+      <button type="button" class="imp-del" aria-label="Удалить дату">×</button>`;
+    row.querySelector('.imp-del').addEventListener('click', () => row.remove());
+    $('#impDates').appendChild(row);
+  }
+
+  /** Собрать важные даты из формы */
+  function collectImpDates() {
+    const out = [];
+    $$('#impDates .imp-row').forEach(row => {
+      const date = row.querySelector('.imp-date-i').value.trim();
+      const label = row.querySelector('.imp-label-i').value.trim();
+      if (date) out.push({ date, label });
+    });
+    return out;
+  }
+
+  /** Отрисовка выбранных тэгов + подсказки */
+  function renderTagChips() {
+    const box = $('#fTagsChips');
+    box.innerHTML = formTags.map((t, i) => `
+      <span class="tag-chip">${esc(t)}
+        <button type="button" data-tag-remove="${i}" aria-label="Убрать тэг">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </span>`).join('');
+
+    // Подсказки популярных тэгов (ещё не выбранных)
+    const selected = formTags.map(norm);
+    const sugg = allTags().filter(t => !selected.includes(norm(t.label))).slice(0, 8);
+    $('#fTagSuggest').innerHTML = sugg.map(t => `
+      <button type="button" class="chip-btn" data-tag-suggest="${esc(t.label)}">${esc(t.label)}</button>`).join('');
+
+    // Datalist для тега-инпута
+    $('#tagSuggestions').innerHTML = allTags().map(t => `<option value="${esc(t.label)}">`).join('');
+  }
+
+  /** Добавить тэг из инпута (делим только по запятым — пробелы внутри тэга) */
+  function addTagFromInput() {
+    const input = $('#fTagInput');
+    const val = input.value.trim();
+    if (!val) return;
+    val.split(',').map(t => t.trim()).filter(Boolean).forEach(t => {
+      if (!formTags.some(x => norm(x) === norm(t)) && t.length <= 40) formTags.push(t);
+    });
+    input.value = '';
+    renderTagChips();
+  }
+
+  /** Сохранение формы */
+  function saveForm() {
+    const name = $('#fName').value.trim();
+    if (!name) {
+      $('#fName').focus();
+      toast('Укажите имя контакта');
+      return;
+    }
+
+    // Новая заметка из формы
+    let newNotes = [];
+    const noteText = $('#fNoteText').value.trim();
+    if (noteText) {
+      newNotes.push({ date: $('#fNoteDate').value || todayStr(), text: noteText });
+    }
+
+    const existing = editingId
+      ? (state.contacts.find(x => x.id === editingId) || { notes: [] }).notes
+      : [];
+
+    const contact = {
+      id: editingId || uuid(),
+      name,
+      photo: formPhoto,
+      phone: $('#fPhone').value.trim(),
+      email: $('#fEmail').value.trim(),
+      company: $('#fCompany').value.trim(),
+      position: $('#fPosition').value.trim(),
+      socials: {
+        telegram: $('#fTg').value.trim(),
+        instagram: $('#fIg').value.trim(),
+        vk: $('#fVk').value.trim()
+      },
+      context: $('#fContext').value.trim(),
+      dateMet: $('#fDateMet').value,
+      tags: formTags,
+      notes: existing.concat(newNotes),
+      importantDates: collectImpDates(),
+      lastContact: $('#fLastContact').value || todayStr(),
+      topics: $('#fTopics').value.trim(),
+      status: $('#fStatus').value,
+      address: $('#fAddress').value.trim(),
+      city: $('#fCity').value.trim()
+    };
+
+    const idx = state.contacts.findIndex(x => x.id === contact.id);
+    if (idx >= 0) state.contacts[idx] = contact;
+    else state.contacts.push(contact);
+
+    persist();
+    closeOverlay('formOverlay');
+    editingId = null;
+    renderAll();
+    toast(idx >= 0 ? 'Контакт обновлён' : 'Контакт добавлен');
+  }
+
+  /* ══════════════ 8. Модальные окна, toast ══════════════ */
+
+  function openOverlay(id) {
+    document.body.style.overflow = 'hidden';
+    $('#' + id).classList.add('open');
+  }
+
+  function closeOverlay(id) {
+    $('#' + id).classList.remove('open');
+    if (!$('.overlay.open')) document.body.style.overflow = '';
+  }
+
+  function closeAllOverlays() {
+    $$('.overlay.open').forEach(o => o.classList.remove('open'));
+    document.body.style.overflow = '';
+  }
+
+  let toastTimer = null;
+  function toast(msg) {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  /* ══════════════ 9. Импорт/экспорт ══════════════ */
+
+  /** Подключение SheetJS с CDN (только при импорте/экспорте Excel) */
+  function loadSheetJS() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+      s.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error('библиотека не загрузилась'));
+      s.onerror = () => reject(new Error('нет доступа к CDN'));
+      document.head.appendChild(s);
+    });
+  }
+
+  /** Скачивание файла через Blob */
+  function download(filename, content) {
+    const blob = content instanceof Blob ? content : new Blob([content], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  /* ── Авто-маппинг колонок Excel ── */
+
+  /** Нормализация заголовка: «Как познакомились» → «какпознакомились» */
+  function normalizeKey(s) {
+    return String(s).toLowerCase().replace(/[^a-zа-яё0-9]/gi, '');
+  }
+
+  /** Словарь распознавания ключевых слов заголовков */
+  const HEADER_ALIASES = {
+    name:      ['имя', 'name', 'фио', 'fio', 'контакт', 'contact', 'человек', 'фамилия'],
+    phone:     ['телефон', 'phone', 'тел', 'mobile', 'мобильный', 'номер'],
+    email:     ['email', 'почта', 'mail', 'емейл'],
+    company:   ['компания', 'company', 'организация', 'org', 'фирма', 'работа'],
+    position:  ['должность', 'position', 'профессия', 'post'],
+    city:      ['город', 'city', 'town'],
+    address:   ['адрес', 'address'],
+    telegram:  ['telegram', 'телеграм', 'тг', 'tg'],
+    instagram: ['instagram', 'инстаграм', 'ig'],
+    vk:        ['vk', 'вконтакте', 'vkontakte'],
+    context:   ['контекст', 'context', 'какпознакомились', 'какпознакомитьс', 'знакомство', 'откуда'],
+    dateMet:   ['датазнакомства', 'datemet', 'когдапознакомились'],
+    status:    ['статус', 'status'],
+    tags:      ['теги', 'tags', 'группы', 'группа', 'категория', 'tag'],
+    topics:    ['темы', 'topics', 'интересы', 'интересы'],
+    lastContact: ['последнийконтакт', 'lastcontact', 'последнийраз', 'когдаобщались'],
+    notes:     ['заметки', 'notes', 'примечания', 'комментарий']
+  };
+
+  const HEADER_KEYS = {};
+  for (const [key, aliases] of Object.entries(HEADER_ALIASES)) {
+    for (const a of aliases) HEADER_KEYS[a] = key;
+  }
+
+  /** Определить ключ поля по заголовку */
+  function mapHeader(h) {
+    const k = normalizeKey(h);
+    if (!k) return '';
+    if (HEADER_KEYS[k]) return HEADER_KEYS[k];
+    // частичное совпадение: «ТелефонКонтакта»
+    for (const a in HEADER_KEYS) {
+      if (k.includes(a)) return HEADER_KEYS[a];
+    }
+    return '';
+  }
+
+  /** Импорт из Excel (первый лист, строка-заголовок авто-распознаётся) */
+  async function importExcel(file) {
+    try {
+      const XLSX = await loadSheetJS();
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+      if (!rows.length) { toast('Файл пуст'); return; }
+
+      // Находим строку заголовков: ищем строку, где распознано 2+ колонки
+      let headerRow = -1;
+      let mapped = [];
+      for (let i = 0; i < Math.min(rows.length, 10); i++) {
+        const m = rows[i].map(h => mapHeader(h));
+        const recognized = m.filter(Boolean).length;
+        if (recognized >= 2) { headerRow = i; mapped = m; break; }
+      }
+      if (headerRow === -1) {
+        toast('Не удалось распознать колонки таблицы');
+        return;
+      }
+
+      let added = 0;
+      for (let r = headerRow + 1; r < rows.length; r++) {
+        const row = rows[r];
+        const get = (key) => {
+          const idx = mapped.indexOf(key);
+          return idx >= 0 ? String(row[idx] || '').trim() : '';
+        };
+
+        const phones = get('phone');
+        const rawName = get('name') || '';
+
+        // Строку без имени, но с данными превращаем в заметку
+        if (!rawName && !phones) continue;
+
+        let tags = get('tags');
+        let tagsArr = [];
+        if (tags) {
+          tagsArr = tags.split(/[;,|/#\n]/).map(t => t.trim()).filter(Boolean).slice(0, 12);
+        }
+
+        // Заметка из колонки «Заметки» (или «телефон» при отсутствии имени)
+        let note = get('notes');
+        if (!rawName) note = note || ('Телефон: ' + phones);
+
+        const contact = normalizeContact({
+          name: rawName,
+          photo: '',
+          phone: phones,
+          email: get('email'),
+          company: get('company'),
+          position: get('position'),
+          city: get('city'),
+          address: get('address'),
+          socials: { telegram: get('telegram'), instagram: get('instagram'), vk: get('vk') },
+          context: get('context'),
+          dateMet: get('dateMet'),
+          tags: tagsArr,
+          notes: note ? [{ date: todayStr(), text: note }] : [],
+          importantDates: [],
+          lastContact: get('lastContact') || todayStr(),
+          topics: get('topics'),
+          status: STATUS_COLORS[norm(get('status'))] ? norm(get('status')) : 'активно'
+        });
+        state.contacts.push(contact);
+        added++;
+      }
+
+      // Резервный вариант: если ничего не распознано по первому слову заголовка
+      if (added === 0) { toast('Новых контактов не найдено (проверьте заголовки)'); return; }
+
+      persist();
+      renderAll();
+      toast(`Импортировано контактов: ${added}`);
+    } catch (e) {
+      toast('Ошибка импорта: ' + (e.message || 'неизвестная'));
+    }
+  }
+
+  /** Экспорт в Excel: листы «Контакты», «Заметки», «Важные даты» */
+  async function exportExcel() {
+    try {
+      const XLSX = await loadSheetJS();
+      const wb = XLSX.utils.book_new();
+      const contacts = state.contacts.map(c => ({
+        'Имя': c.name,
+        'Телефон': c.phone,
+        'Email': c.email,
+        'Компания': c.company,
+        'Должность': c.position,
+        'Город': c.city,
+        'Адрес': c.address,
+        'Telegram': c.socials.telegram,
+        'Instagram': c.socials.instagram,
+        'VK': c.socials.vk,
+        'Статус': c.status,
+        'Тэги': (c.tags || []).join(', '),
+        'Дата знакомства': c.dateMet,
+        'Контекст': c.context,
+        'Темы': c.topics,
+        'Последний контакт': c.lastContact
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(contacts), 'Контакты');
+
+      const notes = [];
+      state.contacts.forEach(c => (c.notes || []).forEach(n =>
+        notes.push({ 'Контакт': c.name, 'Дата': n.date, 'Заметка': n.text })));
+      if (notes.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(notes), 'Заметки');
+
+      const impDates = [];
+      state.contacts.forEach(c => (c.importantDates || []).forEach(d =>
+        impDates.push({ 'Контакт': c.name, 'Дата': d.date, 'Событие': d.label })));
+      if (impDates.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(impDates), 'Важные даты');
+
+      XLSX.writeFile(wb, `PeopleBase_${todayStr()}.xlsx`);
+      toast('Excel-файл сохранён');
+    } catch (e) {
+      toast('Ошибка экспорта: ' + (e.message || 'CDN недоступен'));
+    }
+  }
+
+  /** Экспорт JSON-бэкапа всей базы */
+  function exportJSON() {
+    const payload = {
+      app: 'People Base',
+      version: 1,
+      exported: new Date().toISOString(),
+      contacts: state.contacts
+    };
+    download(`PeopleBase_backup_${todayStr()}.json`, JSON.stringify(payload, null, 2));
+    toast('Бэкап JSON сохранён');
+  }
+
+  /** Импорт JSON-бэкапа */
+  async function importJSON(file) {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      let arr = Array.isArray(data) ? data : (Array.isArray(data.contacts) ? data.contacts : null);
+      if (!arr) throw new Error('неверный формат JSON');
+      arr = arr.map(normalizeContact);
+      // подтверждение замены
+      if (state.contacts.length && !confirm('Заменить текущие контакты данными из бэкапа?')) return;
+      state.contacts = arr;
+      persist();
+      renderAll();
+      toast(`Восстановлено контактов: ${arr.length}`);
+    } catch (e) {
+      toast('Ошибка импорта JSON');
+    }
+  }
+
+  /* ══════════════ 10. Обработка событий ══════════════ */
+
+  function wireEvents() {
+    // Поиск
+    $('#searchInput').addEventListener('input', () => {
+      state.filters.search = $('#searchInput').value.trim();
+      syncSearchUI();
+      renderGrid();
+      renderActiveFilters();
+    });
+
+    // Кнопка очистки поиска
+    $('#searchClearBtn').addEventListener('click', () => {
+      state.filters.search = '';
+      $('#searchInput').value = '';
+      syncSearchUI();
+      renderGrid();
+      renderActiveFilters();
+    });
+
+    // Заголовок фильтров
+    $('#filterBtn').addEventListener('click', () => {
+      $('#filterPanel').classList.toggle('open');
+    });
+
+    // Город и сортировка
+    $('#filterCity').addEventListener('change', (e) => {
+      state.filters.city = e.target.value;
+      renderAll();
+    });
+    $('#sortSelect').addEventListener('change', (e) => {
+      state.filters.sort = e.target.value;
+      renderGrid();
+    });
+
+    // Сброс фильтров
+    $('#resetFiltersBtn').addEventListener('click', resetFilters);
+
+    // Добавить
+    $('#addBtn').addEventListener('click', () => openForm());
+    $('#emptyAddBtn').addEventListener('click', () => openForm());
+    $('#navAdd').addEventListener('click', () => openForm());
+
+    // Нижняя навигация
+    $('#navList').addEventListener('click', () => {
+      closeAllOverlays();
+      $('#menuDropdown').classList.remove('open');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    $('#navSettings').addEventListener('click', () => openOverlay('settingsOverlay'));
+
+    // Меню (☰)
+    $('#menuBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      $('#menuDropdown').classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.menu')) $('#menuDropdown').classList.remove('open');
+    });
+    $('#mnuExport').addEventListener('click', () => { $('#menuDropdown').classList.remove('open'); exportExcel(); });
+    $('#mnuImport').addEventListener('click', () => { $('#menuDropdown').classList.remove('open'); triggerFileImport('excel'); });
+    $('#mnuBackup').addEventListener('click', () => { $('#menuDropdown').classList.remove('open'); exportJSON(); });
+    $('#mnuRestore').addEventListener('click', () => { $('#menuDropdown').classList.remove('open'); triggerFileImport('json'); });
+    $('#mnuReset').addEventListener('click', () => { $('#menuDropdown').classList.remove('open'); resetDemo(); });
+
+    // Настройки
+    $('#setExportExcel').addEventListener('click', exportExcel);
+    $('#setImportExcel').addEventListener('click', () => triggerFileImport('excel'));
+    $('#setBackupJSON').addEventListener('click', exportJSON);
+    $('#setRestoreJSON').addEventListener('click', () => triggerFileImport('json'));
+    $('#setResetDemo').addEventListener('click', resetDemo);
+
+    // Сквозной input для импорта
+    $('#fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const mode = e.target.dataset.mode;
+      if (mode === 'excel') importExcel(file);
+      else if (mode === 'json') importJSON(file);
+      e.target.value = '';
+    });
+
+    // Делегирование кликов по динамическому контенту
+    document.addEventListener('click', (e) => {
+      const closeBtn = e.target.closest('[data-close]');
+      if (closeBtn) { closeOverlay(closeBtn.dataset.close); return; }
+
+      const actEl = e.target.closest('[data-action]');
+      if (actEl) {
+        const { action, id, key } = actEl.dataset;
+        switch (action) {
+          case 'open-detail': openDetail(id); break;
+          case 'edit-contact': openForm(id); break;
+          case 'delete-contact': deleteContact(id); break;
+          case 'add-note': addNoteFromDetail(id); break;
+
+          case 'filter-tag': toggleTagFilter(key); break;
+          case 'filter-status':
+            state.filters.status = actEl.dataset.val;
+            renderAll();
+            break;
+          case 'clear-filter':
+            if (key === 'search') { state.filters.search = ''; $('#searchInput').value = ''; syncSearchUI(); }
+            else if (key === 'status') state.filters.status = '';
+            else if (key === 'city') { state.filters.city = ''; $('#filterCity').value = ''; }
+            else if (key === 'tag') state.filters.tags.delete(actEl.dataset.val);
+            renderAll();
+            break;
+        }
+      }
+    });
+
+    // Переключение тэга в фильтрах
+    function toggleTagFilter(key) {
+      if (state.filters.tags.has(key)) state.filters.tags.delete(key);
+      else state.filters.tags.add(key);
+      renderAll();
+    }
+
+    // Сброс фильтров
+    function resetFilters() {
+      state.filters.search = '';
+      state.filters.status = '';
+      state.filters.city = '';
+      state.filters.tags.clear();
+      $('#searchInput').value = '';
+      $('#filterCity').value = '';
+      syncSearchUI();
+      renderAll();
+      toast('Фильтры сброшены');
+    }
+
+    // Форма: фото
+    $('#photoUploadBtn').addEventListener('click', () => $('#photoInput').click());
+    $('#photoInput').addEventListener('change', (e) => {
+      handlePhotoFile(e.target.files[0]);
+      e.target.value = '';
+    });
+    $('#photoUrlBtn').addEventListener('click', () => {
+      const url = $('#photoUrlInput').value.trim();
+      if (!/^https?:\/\//i.test(url)) { toast('Введите корректный URL'); return; }
+      formPhoto = url;
+      renderFormPhoto();
+      toast('Фото по ссылке применено');
+    });
+    $('#photoRemoveBtn').addEventListener('click', () => {
+      formPhoto = '';
+      renderFormPhoto();
+    });
+
+    // Имя в форме обновляет превью при пустом фото
+    $('#fName').addEventListener('input', () => {
+      if (!formPhoto) renderFormPhoto();
+    });
+
+    // Тэги в форме
+    $('#fTagInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+        // Запятая и Enter — добавление; пробел в составе слова не прерывает
+        if (e.key !== ' ') { e.preventDefault(); addTagFromInput(); }
+      }
+    });
+    $('#fTagAddBtn').addEventListener('click', addTagFromInput);
+    $('#fTagsChips').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-tag-remove]');
+      if (btn) { formTags.splice(+btn.dataset.tagRemove, 1); renderTagChips(); }
+    });
+    $('#fTagSuggest').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-tag-suggest]');
+      if (btn) {
+        const t = btn.dataset.tagSuggest;
+        if (!formTags.some(x => norm(x) === norm(t))) formTags.push(t);
+        renderTagChips();
+      }
+    });
+
+    // Важные даты
+    $('#impAddBtn').addEventListener('click', () => addImpRow());
+
+    // Сохранение
+    $('#formSaveBtn').addEventListener('click', saveForm);
+
+    // Закрытие по Esc и клику на подложку
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllOverlays();
+        $('#menuDropdown').classList.remove('open');
+      }
+    });
+    $$('.overlay').forEach(ov => {
+      ov.addEventListener('mousedown', (e) => {
+        if (e.target === ov) closeOverlay(ov.id);
+      });
+    });
+  }
+
+  /** Выбор файла импорта нужного типа */
+  function triggerFileImport(mode) {
+    const input = $('#fileInput');
+    input.dataset.mode = mode;
+    input.accept = mode === 'excel' ? '.xlsx,.xls,.csv' : '.json,application/json';
+    input.click();
+  }
+
+  /* ══════════════ 11. Инициализация ══════════════ */
+
+  function init() {
+    loadContacts();
+    renderAll();
+    syncSearchUI();
+    wireEvents();
+
+    // Регистрация service worker (оффлайн-режим).
+    // Работает только в secure context: HTTPS или localhost.
+    if ('serviceWorker' in navigator) {
+      const proto = location.protocol;
+      if (proto === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  </script>
+</body>
+</html>
