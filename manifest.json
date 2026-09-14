@@ -2,7 +2,7 @@
   "name": "People Base — Персональная база контактов",
   "short_name": "People",
   "description": "Ретро-каталог контактов — ваш личный архив",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#F5E6D3",
   "theme_color": "#F5E6D3",
